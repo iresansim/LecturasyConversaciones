@@ -13,7 +13,7 @@
 ## Próximas Tareas 🚀
 - [x] Revisión de diseño responsive para móviles.
     - [x] Auditoría con subagente de navegación.
-    - [x] Aplicar mejoras de stack vertical en CSS.
+    - [x] Aplicar mejoras de stack vertical en CSS (Refactorizado a Flexbox).
     - [x] Ajustar tipografía y márgenes para móviles.
 - [ ] Mejora de tiempos de carga (optimización de imágenes en carpeta `Imagenes`).
 - [ ] Implementar un sistema de búsqueda en el historial.
