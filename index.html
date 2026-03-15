@@ -1,0 +1,350 @@
+<html lang="en" vid="0"><head vid="1">
+    <meta charset="UTF-8" vid="2">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" vid="3">
+    <title vid="4">The Margin | Book Club</title>
+    <style vid="5">
+        
+
+        @import url('https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500;600&display=swap');
+
+        :root {
+            --bg-canvas: #F2F0EB;
+            --mat-color: #B5651D;
+            --text-main: #1C1B1A;
+            --text-muted: #66635D;
+            --accent: #C4752D;
+            --border-light: #DCD9D1;
+
+            --font-serif: 'Instrument Serif', serif;
+            --font-sans: 'Inter', sans-serif;
+
+            --space-xs: 0.5rem;
+            --space-sm: 1rem;
+            --space-md: 2rem;
+            --space-lg: 4rem;
+            --space-xl: 8rem;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--mat-color);
+            color: var(--text-main);
+            font-family: var(--font-serif);
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            padding: 3vw; 
+            min-height: 100vh;
+        }
+
+        
+        .canvas {
+            background-color: var(--bg-canvas);
+            min-height: calc(100vh - 6vw);
+            position: relative;
+            display: grid;
+            grid-template-columns: repeat(12, 1fr);
+            gap: 20px;
+            overflow: hidden;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.15); 
+        }
+
+        
+        h1, h2, h3, .display-text {
+            font-family: var(--font-serif);
+            font-weight: 400;
+        }
+
+        .logo {
+            font-size: clamp(2.5rem, 4vw, 4rem);
+            letter-spacing: -0.02em;
+            line-height: 1;
+            grid-column: 1 / 5;
+            padding: var(--space-md);
+        }
+
+        .meta-label {
+            font-family: var(--font-sans);
+            font-size: 0.65rem;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            color: var(--accent);
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: var(--space-xs);
+        }
+
+        .meta-label span.num {
+            font-weight: 400;
+        }
+
+        .body-large {
+            font-size: clamp(2rem, 3.5vw, 4rem);
+            line-height: 1.1;
+            letter-spacing: -0.01em;
+            color: var(--text-main);
+        }
+
+        
+        .highlight-link {
+            color: var(--accent);
+            text-decoration: none;
+            border-bottom: 1px solid var(--accent);
+            padding-bottom: 0.05em;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            display: inline-block;
+            line-height: 0.9;
+        }
+
+        .highlight-link:hover {
+            color: var(--text-main);
+            border-bottom-color: var(--text-main);
+        }
+
+        
+
+        header {
+            grid-column: 1 / -1;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            z-index: 10;
+        }
+
+        nav {
+            padding: var(--space-md);
+            display: flex;
+            gap: var(--space-md);
+        }
+
+        nav a {
+            font-family: var(--font-sans);
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--text-main);
+            text-decoration: none;
+            transition: color 0.2s ease;
+        }
+
+        nav a:hover {
+            color: var(--accent);
+        }
+
+        
+        .hero-content {
+            grid-column: 5 / 12;
+            padding-top: var(--space-xl);
+            padding-bottom: var(--space-xl);
+            z-index: 2;
+        }
+
+        .hero-statement {
+            max-width: 20ch; 
+            margin-top: var(--space-lg);
+        }
+
+        
+        .img-block {
+            position: relative;
+            overflow: hidden;
+            background: #E5E3DD; 
+        }
+
+        .img-block img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+            filter: contrast(1.05) saturate(0.95); 
+        }
+
+        .img-landscape {
+            grid-column: 8 / 13;
+            grid-row: 1 / 3;
+            aspect-ratio: 16 / 9;
+            margin-top: -10%; 
+        }
+
+        .img-portrait {
+            grid-column: 4 / 7;
+            grid-row: 2 / 4;
+            aspect-ratio: 3 / 4;
+            margin-top: 20%;
+        }
+
+        .img-architectural {
+            grid-column: 1 / 5;
+            grid-row: 3 / 5;
+            aspect-ratio: 1 / 1.2;
+            margin-bottom: -10%;
+            margin-left: -5%;
+        }
+
+        
+        .selection-details {
+            grid-column: 7 / 12;
+            grid-row: 3 / 4;
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-md);
+            margin-top: var(--space-xl);
+            padding-left: var(--space-lg);
+            border-left: 1px solid var(--border-light);
+        }
+
+        .data-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: var(--space-sm);
+            font-family: var(--font-sans);
+        }
+
+        .data-row {
+            display: flex;
+            justify-content: space-between;
+            padding-bottom: var(--space-xs);
+            border-bottom: 1px solid var(--border-light);
+            font-size: 0.75rem;
+        }
+
+        .data-row .key {
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .data-row .val {
+            color: var(--text-main);
+            font-weight: 500;
+            text-align: right;
+        }
+
+        .book-title {
+            font-family: var(--font-serif);
+            font-size: 2.5rem;
+            line-height: 1;
+            margin-bottom: var(--space-xs);
+        }
+
+        .book-author {
+            font-family: var(--font-sans);
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+
+        
+        .spatial-line {
+            position: absolute;
+            background-color: var(--border-light);
+        }
+        
+        .line-v { width: 1px; height: 100%; top: 0; left: 33.33%; z-index: 0; }
+
+        @media (max-width: 1024px) {
+            .canvas {
+                grid-template-columns: repeat(6, 1fr);
+                padding-bottom: var(--space-xl);
+            }
+            .logo { grid-column: 1 / -1; }
+            .hero-content { grid-column: 2 / 6; padding-top: var(--space-md); }
+            .img-landscape { grid-column: 4 / 7; grid-row: 2 / 3; margin-top: 0; }
+            .img-portrait { grid-column: 1 / 4; grid-row: 3 / 4; margin-top: 0; }
+            .selection-details { grid-column: 2 / 6; grid-row: 4; border-left: none; padding-left: 0; margin-top: var(--space-lg); }
+            .img-architectural { display: none; }
+            .line-v { display: none; }
+        }
+
+        @media (max-width: 600px) {
+            body { padding: 0; } 
+            .canvas { box-shadow: none; border-radius: 0; }
+            .hero-content { grid-column: 1 / -1; padding: 0 var(--space-md); }
+            .img-landscape, .img-portrait { grid-column: 1 / -1; position: relative; }
+            .selection-details { grid-column: 1 / -1; padding: 0 var(--space-md); }
+        }
+    </style>
+</head>
+<body vid="6">
+
+    <main class="canvas" vid="7">
+        <div class="spatial-line line-v" vid="8"></div>
+
+        <header vid="9">
+            <div class="logo" vid="10">The Margin</div>
+            <nav vid="11">
+                <a href="#" vid="12">Syllabus</a>
+                <a href="#" vid="13">Archive</a>
+                <a href="#" vid="14">Join</a>
+            </nav>
+        </header>
+
+        
+        <div class="img-block img-landscape" vid="15">
+            <img src="https://images.pexels.com/photos/3747463/pexels-photo-3747463.jpeg?auto=compress&amp;cs=tinysrgb&amp;w=1200" alt="Serene reading environment, soft light" vid="16">
+        </div>
+
+        
+        <div class="img-block img-portrait" vid="17">
+            
+            <img src="https://images.pexels.com/photos/1749822/pexels-photo-1749822.jpeg?auto=compress&amp;cs=tinysrgb&amp;w=800" alt="Person holding a book, focused" vid="18">
+        </div>
+
+        
+        <div class="img-block img-architectural" vid="19">
+            <img src="https://images.pexels.com/photos/2079249/pexels-photo-2079249.jpeg?auto=compress&amp;cs=tinysrgb&amp;w=800" alt="Architectural detail, brick and shadow" vid="20">
+        </div>
+
+        
+        <div class="hero-content" vid="21">
+            <div class="meta-label" vid="22">
+                <span class="num" vid="23">01</span> ABOUT THE CLUB
+            </div>
+            
+            <p class="body-large hero-statement" vid="24">
+                is curated for the deliberate reader, allocating dedicated time to <a href="#" class="highlight-link" vid="25">Analyze</a>, <a href="#" class="highlight-link" vid="26">Converse</a>, and <a href="#" class="highlight-link" vid="27">Reflect</a>, beyond the surface of the page.
+            </p>
+        </div>
+
+        
+        <div class="selection-details" vid="28">
+            <div class="meta-label" vid="29">
+                <span class="num" vid="30">02</span> CURRENT SYLLABUS
+            </div>
+
+            <div vid="31">
+                <h2 class="book-title" vid="32">The Master and Margarita</h2>
+                <div class="book-author" vid="33">Mikhail Bulgakov</div>
+            </div>
+
+            <div class="data-grid" vid="34">
+                <div class="data-row" vid="35">
+                    <span class="key" vid="36">Session Date</span>
+                    <span class="val" vid="37">November 12, 2023</span>
+                </div>
+                <div class="data-row" vid="38">
+                    <span class="key" vid="39">Gathering Time</span>
+                    <span class="val" vid="40">19:00 — 21:30</span>
+                </div>
+                <div class="data-row" vid="41">
+                    <span class="key" vid="42">Location</span>
+                    <span class="val" vid="43">NorthPark Conservatory</span>
+                </div>
+                <div class="data-row" vid="44">
+                    <span class="key" vid="45">Format</span>
+                    <span class="val" vid="46">Roundtable Discussion</span>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+
+</body></html>
