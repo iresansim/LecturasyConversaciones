@@ -19,6 +19,9 @@
 - Las tareas se desglosan en `agent/task.md`.
 - El progreso se documenta en este `agent/plan.md`.
 
-## 5. Próximos Pasos Técnicos
-- Refinar el diseño responsivo para dispositivos móviles pequeños.
-- Optimizar la carga de imágenes pesadas.
+## 5. Próximos Pasos Técnicos [EN CURSO]
+- **Refinar el diseño responsivo (Fase 1)**:
+    - Implementar `flex-direction: column` para `.timeline-item` y `#next-session-section` en móviles.
+    - Ajustar el grid de `.canvas` para evitar desbordamientos horizontales.
+    - Reducir tamaños de fuente (`clamp`) y espacios (`--space-xl`) en móviles.
+- **Optimizar la carga de imágenes pesadas**.

@@ -248,13 +248,102 @@ nav a:hover {
 }
 
 @media (max-width: 1024px) {
-    .canvas {
-        grid-template-columns: repeat(6, 1fr);
-        padding-bottom: var(--space-xl);
+    :root {
+        --space-md: 1.5rem;
+        --space-lg: 3rem;
+        --space-xl: 4rem;
     }
-    .logo { grid-column: 1 / -1; }
-    .hero-content { grid-column: 1 / -1; padding: var(--space-md); }
-    .img-portrait { grid-column: 1 / -1; aspect-ratio: 16 / 9; margin-top: 0; }
-    #next-session { grid-column: 1 / -1; border-right: none; padding-right: 0; }
-    .section-timeline { grid-column: 1 / -1; padding: var(--space-md); }
+
+    body {
+        padding: 0;
+    }
+
+    .canvas {
+        grid-template-columns: 1fr;
+        padding-bottom: var(--space-xl);
+        min-height: 100vh;
+        box-shadow: none;
+    }
+
+    header {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        padding-top: var(--space-sm);
+    }
+
+    .logo {
+        grid-column: 1 / -1;
+        padding: var(--space-sm);
+        font-size: 2rem;
+    }
+
+    nav {
+        padding: var(--space-sm);
+        gap: var(--space-sm);
+        width: 100%;
+        justify-content: center;
+        border-bottom: 1px solid var(--border-light);
+    }
+
+    nav a {
+        font-size: 0.65rem;
+    }
+
+    .hero-content {
+        grid-column: 1 / -1;
+        grid-row: auto;
+        padding: var(--space-md);
+        padding-top: var(--space-lg);
+    }
+
+    .hero-statement {
+        max-width: 100%;
+        margin-top: var(--space-sm);
+    }
+
+    #next-session-section {
+        grid-column: 1 / -1;
+        grid-row: auto;
+        padding: var(--space-md);
+        margin-top: 0;
+    }
+
+    .img-portrait {
+        grid-column: 1 / -1;
+        grid-row: auto;
+        aspect-ratio: 4 / 5;
+        margin: 0 var(--space-md);
+        width: calc(100% - (var(--space-md) * 2));
+    }
+
+    .book-title {
+        font-size: 2.2rem;
+    }
+
+    .section-timeline {
+        grid-column: 1 / -1;
+        padding: var(--space-md);
+        margin-top: var(--space-lg);
+    }
+
+    .timeline-item {
+        flex-direction: column;
+        gap: var(--space-sm);
+    }
+
+    .timeline-item img {
+        width: 100%;
+        height: auto;
+        aspect-ratio: 2 / 3;
+    }
+
+    #tintero-section {
+        grid-column: 1 / -1;
+        padding: var(--space-md);
+    }
+
+    .data-row .val {
+        text-align: left;
+    }
 }

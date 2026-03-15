@@ -11,7 +11,10 @@
 - [x] Primer despliegue en GitHub Pages.
 
 ## Próximas Tareas 🚀
-- [ ] Revisión de diseño responsive para móviles.
+- [x] Revisión de diseño responsive para móviles.
+    - [x] Auditoría con subagente de navegación.
+    - [x] Aplicar mejoras de stack vertical en CSS.
+    - [x] Ajustar tipografía y márgenes para móviles.
 - [ ] Mejora de tiempos de carga (optimización de imágenes en carpeta `Imagenes`).
 - [ ] Implementar un sistema de búsqueda en el historial.
 - [ ] Añadir una sección de "Libro del Año".
