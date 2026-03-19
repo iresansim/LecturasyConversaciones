@@ -126,6 +126,8 @@ function renderNextSessionDynamic(session) {
 // RENDERIZADO ESTÁTICO (FALLBACK)
 function renderNextSessionStatic(nextSession) {
     if (!nextSession) return;
+    
+    // 1. Portada
     const coverContainer = document.getElementById('current-cover');
     if (coverContainer) {
         let coversHtml = `<img src="${encodeURI(nextSession.book.cover)}" alt="Lectura Actual">`;
@@ -133,6 +135,59 @@ function renderNextSessionStatic(nextSession) {
             coversHtml += `<img src="${encodeURI(nextSession.comic.cover)}" alt="Cómic Especial" class="img-comic">`;
         }
         coverContainer.innerHTML = coversHtml;
+    }
+
+    // 2. Contenido de Texto
+    const contentContainer = document.getElementById('next-session-content');
+    if (contentContainer) {
+        const date = new Date(nextSession.date);
+        let dateString = date.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' });
+        dateString = dateString.split(' ').map(word => 
+            word.length > 2 ? word.charAt(0).toUpperCase() + word.slice(1) : word
+        ).join(' ');
+
+        const timeString = date.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+
+        let titlesHtml = `
+            <div style="margin-bottom: 2rem;">
+                <h2 class="book-title">${nextSession.book.title}</h2>
+                <div class="book-author">${nextSession.book.author}</div>
+            </div>
+        `;
+
+        if (nextSession.comic) {
+            titlesHtml += `
+                <div style="margin-bottom: 2rem; padding-left: 1rem; border-left: 2px solid var(--accent);">
+                    <div style="font-size: 0.7rem; color: var(--accent); font-weight: 600; text-transform: uppercase; margin-bottom: 0.2rem;">Cómic del Mes:</div>
+                    <h3 style="font-family: var(--font-serif); font-size: 1.5rem; margin: 0;">${nextSession.comic.title}</h3>
+                    <div style="font-family: var(--font-sans); font-size: 0.9rem; color: var(--text-muted);">${nextSession.comic.author}</div>
+                </div>
+            `;
+        }
+
+        contentContainer.innerHTML = `
+            ${titlesHtml}
+            <div class="data-grid">
+                <div class="data-row">
+                    <span class="key">Fecha Sesión</span>
+                    <span class="val">${dateString}</span>
+                </div>
+                <div class="data-row">
+                    <span class="key">Hora</span>
+                    <span class="val">${timeString}</span>
+                </div>
+                <div class="data-row">
+                    <span class="key">Plataforma</span>
+                    <span class="val">Google Meet</span>
+                </div>
+                <div class="data-row">
+                    <span class="key">Propuesto Por</span>
+                    <span class="val">${nextSession.proposer}</span>
+                </div>
+            </div>
+            ${nextSession.note ? `<div class="session-note" style="margin-top: 1.5rem; font-size: 0.9rem; font-style: italic; color: var(--text-muted); border-top: 1px solid var(--border-light); padding-top: 1rem;">${nextSession.note}</div>` : ''}
+            <a href="${nextSession.link}" target="_blank" class="btn-primary" style="align-self: flex-start; margin-top: 2.5rem;">Unirse a la Sesión</a>
+        `;
     }
 }
 
