@@ -7,7 +7,7 @@ let supabase;
 document.addEventListener('DOMContentLoaded', () => {
     console.log("DOM Cargado. Inicializando...");
     if (!window.supabase) {
-        console.error("Error: Supabase SDK no cargado. Revisa la conexión a internet o el enlace CDN.");
+        console.error("Error: Supabase SDK no cargado.");
         showError("Error: No se pudo cargar el motor de la base de datos.");
         return;
     }
@@ -25,7 +25,7 @@ function showError(msg) {
 async function init() {
     console.log("Iniciando carga de datos desde Supabase...");
     try {
-        // 1. Obtener todas las sesiones con sus libros y autores relacionados
+        // 1. Obtener sesiones
         const { data: sessions, error: sessionsError } = await supabase
             .from('sesiones')
             .select(`
@@ -43,20 +43,40 @@ async function init() {
             `)
             .order('numero_sesion', { ascending: false });
 
-        if (sessionsError) {
-            console.error("Error en consulta de sesiones:", sessionsError);
-            throw sessionsError;
+        if (sessionsError) throw sessionsError;
+
+        // 2. Obtener propuestas
+        const { data: proposals, error: proposalsError } = await supabase
+            .from('propuestas_pendientes')
+            .select('*')
+            .order('votos', { ascending: false });
+
+        if (proposalsError) throw proposalsError;
+
+        if (!sessions || sessions.length === 0) {
+            console.warn("No hay sesiones.");
+            return;
         }
 
-        console.log(`Sesiones obtenidas: ${sessions?.length || 0}`);
-        if (!sessions || sessions.length === 0) {
-            console.warn("No se encontraron sesiones en la base de datos.");
-        }
+        const nextSession = sessions[0];
+        const history = sessions.slice(1);
+
+        renderNextSession(nextSession);
+        renderProposals(proposals);
+        renderTimeline(history);
+        renderExternalReads(proposals);
+
+        console.log("Renderizado completado.");
+
+    } catch (error) {
+        console.error("Error crítico:", error);
+        showError("Error al conectar con la base de datos: " + error.message);
+    }
+}
 
 function renderNextSession(session) {
-    if (!session) return;
+    if (!session || !session.libro) return;
     
-    // 1. Update the Cover Image(s)
     const coverContainer = document.getElementById('current-cover');
     if (coverContainer) {
         let coversHtml = `<img src="${encodeURI(session.libro.imagen)}" alt="Lectura Actual">`;
@@ -66,12 +86,16 @@ function renderNextSession(session) {
         coverContainer.innerHTML = coversHtml;
     }
 
-    // 2. Update Details Text
     const contentContainer = document.getElementById('next-session-content');
     if (contentContainer) {
-        const date = new Date(session.fecha + (session.hora ? 'T' + session.hora : ''));
+        // Intentamos parsear la fecha de forma segura
+        let date;
+        try {
+            date = new Date(session.fecha + (session.hora ? 'T' + session.hora : ''));
+        } catch(e) {
+            date = new Date();
+        }
         
-        // Formatear fecha: Martes, 14 De Abril
         let dateString = date.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' });
         dateString = dateString.split(' ').map(word => 
             word.length > 2 ? word.charAt(0).toUpperCase() + word.slice(1) : word
@@ -82,7 +106,7 @@ function renderNextSession(session) {
         let titlesHtml = `
             <div style="margin-bottom: 2rem;">
                 <h2 class="book-title">${session.libro.titulo}</h2>
-                <div class="book-author">${session.libro.autor.nombre}</div>
+                <div class="book-author">${session.libro.autor ? session.libro.autor.nombre : 'Autor Desconocido'}</div>
             </div>
         `;
 
@@ -91,16 +115,7 @@ function renderNextSession(session) {
                 <div style="margin-bottom: 2rem; padding-left: 1rem; border-left: 2px solid var(--accent);">
                     <div style="font-size: 0.7rem; color: var(--accent); font-weight: 600; text-transform: uppercase; margin-bottom: 0.2rem;">Cómic del Mes:</div>
                     <h3 style="font-family: var(--font-serif); font-size: 1.5rem; margin: 0;">${session.comic.titulo}</h3>
-                    <div style="font-family: var(--font-sans); font-size: 0.9rem; color: var(--text-muted);">${session.comic.autor.nombre}</div>
-                </div>
-            `;
-        }
-
-        let noteHtml = '';
-        if (session.notas) {
-            noteHtml = `
-                <div class="session-note" style="margin-top: 1.5rem; font-size: 0.9rem; font-style: italic; color: var(--text-muted); border-top: 1px solid var(--border-light); padding-top: 1rem;">
-                    ${session.notas}
+                    <div style="font-family: var(--font-sans); font-size: 0.9rem; color: var(--text-muted);">${session.comic.autor ? session.comic.autor.nombre : ''}</div>
                 </div>
             `;
         }
@@ -118,14 +133,14 @@ function renderNextSession(session) {
                 </div>
                 <div class="data-row">
                     <span class="key">Plataforma</span>
-                    <span class="val">${session.plataforma}</span>
+                    <span class="val">${session.plataforma || 'Google Meet'}</span>
                 </div>
                 <div class="data-row">
                     <span class="key">Propuesto Por</span>
                     <span class="val">${session.proponente || 'Club'}</span>
                 </div>
             </div>
-            ${noteHtml}
+            ${session.notas ? `<div class="session-note">${session.notas}</div>` : ''}
             ${session.link_reunion ? `<a href="${session.link_reunion}" target="_blank" class="btn-primary" style="align-self: flex-start; margin-top: 2.5rem;">Unirse a la Sesión</a>` : ''}
         `;
     }
@@ -135,7 +150,6 @@ function renderProposals(proposals) {
     const container = document.getElementById('proposals-next-session');
     if (!container) return;
     
-    // Si no hay propuestas con votos, mostramos el mensaje para Elena
     if (!proposals || proposals.length === 0) {
         container.innerHTML = `
             <div style="font-family: var(--font-sans); font-size: 1rem; line-height: 1.4; padding: 1.5rem; border-left: 2px solid var(--accent); background: rgba(196, 117, 45, 0.05); margin-top: 2.5rem;">
@@ -157,7 +171,6 @@ function renderExternalReads(proposals) {
     const container = document.getElementById('external-list');
     if (!container) return;
 
-    // Filtramos para mostrar algunas recomendaciones (pueden ser las mismas propuestas o una subsección)
     container.innerHTML = proposals.slice(0, 5).map(r => `
         <div style="margin-bottom: 2rem; padding-bottom: 1rem; border-bottom: 1px dashed var(--border-light);">
             <div style="font-size: 0.7rem; color: var(--accent); font-weight: 600; text-transform: uppercase;">RECOMENDACIÓN:</div>
@@ -171,20 +184,25 @@ function renderTimeline(sessions) {
     const container = document.getElementById('timeline');
     if (!container) return;
 
-    container.innerHTML = sessions.map((s) => `
-        <div class="timeline-item">
-            <img src="${encodeURI(s.libro.imagen)}" alt="${s.libro.titulo}">
-            <div class="timeline-content">
-                <div class="meta-label">
-                    ${new Date(s.fecha).toLocaleDateString('es-ES', { month: 'long', year: 'numeric' })}
+    container.innerHTML = sessions.map((s) => {
+        if (!s.libro) return '';
+        return `
+            <div class="timeline-item">
+                <img src="${encodeURI(s.libro.imagen)}" alt="${s.libro.titulo}">
+                <div class="timeline-content">
+                    <div class="meta-label">
+                        ${new Date(s.fecha).toLocaleDateString('es-ES', { month: 'long', year: 'numeric' })}
+                    </div>
+                    <h3 style="font-family: var(--font-serif); font-size: 2rem;">${s.libro.titulo}</h3>
+                    <div style="font-family: var(--font-sans); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-muted);">
+                        ${s.libro.autor ? s.libro.autor.nombre : ''}
+                    </div>
+                    <div style="font-family: var(--font-sans); font-size: 0.7rem; color: var(--accent); font-weight: 600; margin-top: 0.4rem; text-transform: uppercase;">
+                        Propuesto por: <span style="color: var(--text-main); font-weight: 400;">${s.proponente || 'Club'}</span>
+                    </div>
+                    <p>${s.resumen || ''}</p>
                 </div>
-                <h3 style="font-family: var(--font-serif); font-size: 2rem;">${s.libro.titulo}</h3>
-                <div style="font-family: var(--font-sans); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-muted);">${s.libro.autor.nombre}</div>
-                <div style="font-family: var(--font-sans); font-size: 0.7rem; color: var(--accent); font-weight: 600; margin-top: 0.4rem; text-transform: uppercase;">
-                    Propuesto por: <span style="color: var(--text-main); font-weight: 400;">${s.proponente || 'Club'}</span>
-                </div>
-                <p>${s.resumen || ''}</p>
             </div>
-        </div>
-    `).join('');
+        `;
+    }).join('');
 }
