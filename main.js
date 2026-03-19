@@ -2,11 +2,28 @@
 const SUPABASE_URL = 'https://hezgfdairgtrqxznszos.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhlemdmZGFpcmd0cnF4em5zem9zIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM5MDY1NTYsImV4cCI6MjA4OTQ4MjU1Nn0.KZN36UqLYCUmAyVEjk_JIhYlcotEjfY9TRISBzT_K6Q';
 
-const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+let supabase;
 
-document.addEventListener('DOMContentLoaded', init);
+document.addEventListener('DOMContentLoaded', () => {
+    console.log("DOM Cargado. Inicializando...");
+    if (!window.supabase) {
+        console.error("Error: Supabase SDK no cargado. Revisa la conexión a internet o el enlace CDN.");
+        showError("Error: No se pudo cargar el motor de la base de datos.");
+        return;
+    }
+    supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    init();
+});
+
+function showError(msg) {
+    const banner = document.createElement('div');
+    banner.style = "position:fixed; top:20px; left:50%; transform:translateX(-50%); background:#e74c3c; color:white; padding:15px 30px; border-radius:8px; z-index:10000; box-shadow:0 4px 12px rgba(0,0,0,0.2); font-family:sans-serif; font-weight:bold;";
+    banner.textContent = msg;
+    document.body.appendChild(banner);
+}
 
 async function init() {
+    console.log("Iniciando carga de datos desde Supabase...");
     try {
         // 1. Obtener todas las sesiones con sus libros y autores relacionados
         const { data: sessions, error: sessionsError } = await supabase
@@ -26,32 +43,15 @@ async function init() {
             `)
             .order('numero_sesion', { ascending: false });
 
-        if (sessionsError) throw sessionsError;
+        if (sessionsError) {
+            console.error("Error en consulta de sesiones:", sessionsError);
+            throw sessionsError;
+        }
 
-        // 2. Obtener propuestas pendientes
-        const { data: proposals, error: proposalsError } = await supabase
-            .from('propuestas_pendientes')
-            .select('*')
-            .order('votos', { ascending: false });
-
-        if (proposalsError) throw proposalsError;
-
-        // Separar la próxima sesión (la más reciente) del historial
-        const nextSession = sessions[0];
-        const history = sessions.slice(1);
-
-        renderNextSession(nextSession);
-        renderProposals(proposals);
-        renderTimeline(history);
-        
-        // El apartado de recomendaciones ("En el tintero") ahora se nutre de propuestas_pendientes o libros sin sesión
-        renderExternalReads(proposals);
-
-    } catch (error) {
-        console.error("Error cargando datos de Supabase:", error.message);
-        document.body.innerHTML += `<div style="position:fixed; bottom:20px; right:20px; background:red; color:white; padding:10px; border-radius:5px; z-index:10000;">Error de conexión con la base de datos</div>`;
-    }
-}
+        console.log(`Sesiones obtenidas: ${sessions?.length || 0}`);
+        if (!sessions || sessions.length === 0) {
+            console.warn("No se encontraron sesiones en la base de datos.");
+        }
 
 function renderNextSession(session) {
     if (!session) return;
