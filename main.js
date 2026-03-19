@@ -1,131 +1,20 @@
-// Configuración de Supabase
-const SUPABASE_URL = 'https://hezgfdairgtrqxznszos.supabase.co';
-const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhlemdmZGFpcmd0cnF4em5zem9zIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM5MDY1NTYsImV4cCI6MjA4OTQ4MjU1Nn0.KZN36UqLYCUmAyVEjk_JIhYlcotEjfY9TRISBzT_K6Q';
-
-let supabase;
-
 document.addEventListener('DOMContentLoaded', () => {
-    // 1. Cargar datos estáticos inmediatamente (Secciones 02 y 03)
-    const staticData = window.ClubLibroData;
-    if (staticData) {
-        // Inicialmente renderizamos todo con los datos estáticos
-        renderNextSessionStatic(staticData.nextSession);
-        renderProposals(staticData); // Fallback estático
-        renderExternalReads(staticData);
-        renderTimeline(staticData);
+    // Accedemos a los datos globales (cargados desde data.js)
+    const data = window.ClubLibroData;
+    
+    if (!data) {
+        console.error("No se encontraron los datos del club. Asegúrate de que data.js se carga antes que main.js");
+        return;
     }
 
-    // 2. Intentar actualizar la Sección 01 desde Supabase
-    if (window.supabase) {
-        supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-        updateNextSessionFromSupabase();
-    } else {
-        console.warn("Supabase SDK no detectado. Se mantienen los datos estáticos.");
-    }
+    renderNextSession(data);
+    renderProposals(data);
+    renderExternalReads(data);
+    renderTimeline(data);
 });
 
-async function updateNextSessionFromSupabase() {
-    try {
-        console.log("Actualizando Próxima Sesión desde Supabase...");
-        const { data: sessions, error } = await supabase
-            .from('sesiones')
-            .select(`
-                *,
-                libro:libros!libro_id (
-                    titulo,
-                    imagen,
-                    autor:autores (nombre)
-                ),
-                comic:libros!comic_id (
-                    titulo,
-                    imagen,
-                    autor:autores (nombre)
-                )
-            `)
-            .order('numero_sesion', { ascending: false })
-            .limit(1);
-
-        if (error) throw error;
-        if (sessions && sessions.length > 0) {
-            renderNextSessionDynamic(sessions[0]);
-        }
-    } catch (err) {
-        console.error("Error al actualizar desde Supabase:", err.message);
-    }
-}
-
-// RENDERIZADO DINÁMICO (SUPABASE)
-function renderNextSessionDynamic(session) {
-    if (!session || !session.libro) return;
-    
-    // Portada
-    const coverContainer = document.getElementById('current-cover');
-    if (coverContainer) {
-        let coversHtml = `<img src="${encodeURI(session.libro.imagen)}" alt="Lectura Actual">`;
-        if (session.comic) {
-            coversHtml += `<img src="${encodeURI(session.comic.imagen)}" alt="Cómic Especial" class="img-comic">`;
-        }
-        coverContainer.innerHTML = coversHtml;
-    }
-
-    // Contenido
-    const contentContainer = document.getElementById('next-session-content');
-    if (contentContainer) {
-        const date = new Date(session.fecha + (session.hora ? 'T' + session.hora : ''));
-        
-        let dateString = date.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' });
-        dateString = dateString.split(' ').map(word => 
-            word.length > 2 ? word.charAt(0).toUpperCase() + word.slice(1) : word
-        ).join(' ');
-
-        const timeString = session.hora ? session.hora.substring(0, 5) : "--:--";
-
-        let titlesHtml = `
-            <div style="margin-bottom: 2rem;">
-                <h2 class="book-title">${session.libro.titulo}</h2>
-                <div class="book-author">${session.libro.autor ? session.libro.autor.nombre : 'Autor Desconocido'}</div>
-            </div>
-        `;
-
-        if (session.comic) {
-            titlesHtml += `
-                <div style="margin-bottom: 2rem; padding-left: 1rem; border-left: 2px solid var(--accent);">
-                    <div style="font-size: 0.7rem; color: var(--accent); font-weight: 600; text-transform: uppercase; margin-bottom: 0.2rem;">Cómic del Mes:</div>
-                    <h3 style="font-family: var(--font-serif); font-size: 1.5rem; margin: 0;">${session.comic.titulo}</h3>
-                    <div style="font-family: var(--font-sans); font-size: 0.9rem; color: var(--text-muted);">${session.comic.autor ? session.comic.autor.nombre : ''}</div>
-                </div>
-            `;
-        }
-
-        contentContainer.innerHTML = `
-            ${titlesHtml}
-            <div class="data-grid">
-                <div class="data-row">
-                    <span class="key">Fecha Sesión</span>
-                    <span class="val">${dateString}</span>
-                </div>
-                <div class="data-row">
-                    <span class="key">Hora</span>
-                    <span class="val">${timeString}</span>
-                </div>
-                <div class="data-row">
-                    <span class="key">Plataforma</span>
-                    <span class="val">${session.plataforma || 'Google Meet'}</span>
-                </div>
-                <div class="data-row">
-                    <span class="key">Propuesto Por</span>
-                    <span class="val">${session.proponente || 'Club'}</span>
-                </div>
-            </div>
-            ${session.notas ? `<div class="session-note" style="margin-top: 1.5rem; font-size: 0.9rem; font-style: italic; color: var(--text-muted); border-top: 1px solid var(--border-light); padding-top: 1rem;">${session.notas}</div>` : ''}
-            ${session.link_reunion ? `<a href="${session.link_reunion}" target="_blank" class="btn-primary" style="align-self: flex-start; margin-top: 2.5rem;">Unirse a la Sesión</a>` : ''}
-        `;
-    }
-}
-
-// RENDERIZADO ESTÁTICO (FALLBACK)
-function renderNextSessionStatic(nextSession) {
-    if (!nextSession) return;
+function renderNextSession(data) {
+    const { nextSession } = data;
     
     // 1. Portada
     const coverContainer = document.getElementById('current-cover');
