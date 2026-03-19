@@ -2,31 +2,50 @@
 const SUPABASE_URL = 'https://hezgfdairgtrqxznszos.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhlemdmZGFpcmd0cnF4em5zem9zIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM5MDY1NTYsImV4cCI6MjA4OTQ4MjU1Nn0.KZN36UqLYCUmAyVEjk_JIhYlcotEjfY9TRISBzT_K6Q';
 
-let supabase;
+console.log("main.js detectado");
 
 document.addEventListener('DOMContentLoaded', () => {
-    // 1. Cargar datos estáticos (data.js) inmediatamente
+    console.log("DOM Cargado");
+    
+    // 1. Verificar datos estáticos
     const data = window.ClubLibroData;
     if (!data) {
-        console.error("No se encontraron los datos del club.");
+        showOnScreenError("Error: No se encontró 'data.js'. Asegúrate de que el archivo existe y está en la misma carpeta.");
         return;
     }
 
-    renderNextSession(data);
-    renderProposals(data);
-    renderExternalReads(data);
-    renderTimeline(data);
+    // 2. Renderizar cada sección con manejo de errores individual
+    try { safeRender('Portada', () => renderNextSession(data)); } catch(e) { console.error(e); }
+    try { safeRender('Propuestas', () => renderProposals(data)); } catch(e) { console.error(e); }
+    try { safeRender('Recomendaciones', () => renderExternalReads(data)); } catch(e) { console.error(e); }
+    try { safeRender('Historial', () => renderTimeline(data)); } catch(e) { console.error(e); }
 
-    // 2. Intentar actualizar SOLO el proponente desde Supabase (Mejora progresiva)
+    // 3. Intento de actualización dinámica del proponente
     if (window.supabase) {
-        supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-        updateProposerFromSupabase();
+        try {
+            const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+            updateProposer(supabase);
+        } catch (e) {
+            console.warn("Error al inicializar Supabase:", e.message);
+        }
     }
 });
 
-async function updateProposerFromSupabase() {
+function safeRender(name, fn) {
+    console.log(`Renderizando ${name}...`);
+    fn();
+}
+
+function showOnScreenError(msg) {
+    const div = document.createElement('div');
+    div.style = "position:fixed; top:0; left:0; width:100%; background:red; color:white; padding:20px; text-align:center; z-index:9999; font-weight:bold;";
+    div.innerText = msg;
+    document.body.prepend(div);
+}
+
+async function updateProposer(client) {
     try {
-        const { data: sessions, error } = await supabase
+        const { data: sessions, error } = await client
             .from('sesiones')
             .select('proponente')
             .order('numero_sesion', { ascending: false })
@@ -34,27 +53,26 @@ async function updateProposerFromSupabase() {
 
         if (error) throw error;
         if (sessions && sessions.length > 0 && sessions[0].proponente) {
-            // Buscamos el elemento de "Propuesto Por" en la tabla de datos
-            const dataRows = document.querySelectorAll('.data-row');
-            dataRows.forEach(row => {
-                const key = row.querySelector('.key');
+            const row = document.getElementById('proposer-row');
+            if (row) {
                 const val = row.querySelector('.val');
-                if (key && key.textContent.includes('Propuesto Por')) {
+                if (val) {
                     val.textContent = sessions[0].proponente;
-                    val.style.color = 'var(--accent)'; // Un pequeño toque visual para indicar que es dinámico
+                    val.style.color = 'var(--accent)';
                     val.style.fontWeight = 'bold';
+                    console.log("Proponente actualizado desde DB:", sessions[0].proponente);
                 }
-            });
+            }
         }
     } catch (err) {
-        console.warn("No se pudo actualizar el proponente desde la DB, se mantiene el valor estático.");
+        console.warn("Fallo al cargar el proponente dinámico:", err.message);
     }
 }
 
 function renderNextSession(data) {
     const { nextSession } = data;
+    if (!nextSession) return;
     
-    // Portada
     const coverContainer = document.getElementById('current-cover');
     if (coverContainer) {
         let coversHtml = `<img src="${encodeURI(nextSession.book.cover)}" alt="Lectura Actual">`;
@@ -64,7 +82,6 @@ function renderNextSession(data) {
         coverContainer.innerHTML = coversHtml;
     }
 
-    // Texto
     const contentContainer = document.getElementById('next-session-content');
     if (contentContainer) {
         const date = new Date(nextSession.date);
@@ -73,7 +90,7 @@ function renderNextSession(data) {
             word.length > 2 ? word.charAt(0).toUpperCase() + word.slice(1) : word
         ).join(' ');
 
-        const timeString = date.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+        const timeString = date.getHours().toString().padStart(2, '0') + ":" + date.getMinutes().toString().padStart(2, '0');
 
         let titlesHtml = `
             <div style="margin-bottom: 2rem;">
@@ -121,9 +138,9 @@ function renderNextSession(data) {
 function renderProposals(data) {
     const { proposals } = data;
     const container = document.getElementById('proposals-next-session');
-    if (!container) return;
+    if (!container || !proposals) return;
     
-    if (!proposals || proposals.length === 0) {
+    if (proposals.length === 0) {
         container.innerHTML = `
             <div style="font-family: var(--font-sans); font-size: 1rem; line-height: 1.4; padding: 1.5rem; border-left: 2px solid var(--accent); background: rgba(196, 117, 45, 0.05); margin-top: 2.5rem;">
                 🗣️ <strong>@Elena</strong> trae tres propuestas como máximo para la votación de la próxima sesión.
@@ -143,14 +160,14 @@ function renderProposals(data) {
 function renderExternalReads(data) {
     const { externalReads } = data;
     const container = document.getElementById('external-list');
-    if (!container) return;
+    if (!container || !externalReads) return;
 
     container.innerHTML = externalReads.map(r => `
         <div style="margin-bottom: 2rem; padding-bottom: 1rem; border-bottom: 1px dashed var(--border-light);">
             <div style="font-size: 0.7rem; color: var(--accent); font-weight: 600; text-transform: uppercase;">RECOMENDACIÓN:</div>
             <div style="font-family: var(--font-serif); font-size: 1.5rem; line-height: 1.2;">${r.title}</div>
             <div style="font-family: var(--font-sans); font-size: 0.8rem; color: var(--text-muted); margin-top: 0.2rem;">${r.author}</div>
-            <div style="font-size: 0.85rem; font-style: italic; color: var(--text-muted); margin-top: 0.5rem;">"${r.comment}"</div>
+            <div style="font-size: 0.85rem; font-style: italic; color: var(--text-muted); margin-top: 0.5rem;">"${r.comment || ''}"</div>
         </div>
     `).join('');
 }
@@ -158,7 +175,7 @@ function renderExternalReads(data) {
 function renderTimeline(data) {
     const { sessions } = data;
     const container = document.getElementById('timeline');
-    if (!container) return;
+    if (!container || !sessions) return;
 
     container.innerHTML = sessions.map((s) => `
         <div class="timeline-item">
