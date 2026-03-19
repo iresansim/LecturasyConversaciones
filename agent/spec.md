@@ -4,7 +4,7 @@
 "Lecturas y Conversaciones" es una aplicación web privada diseñada para un club de lectura de 9 personas. Su objetivo es centralizar la información de las sesiones, facilitar la gestión de propuestas y mantener un historial vivo de las lecturas compartidas.
 
 ## 2. Personas Usuarias
-- **Club de Lectura**: Ana, Anna, Cris, Elena, Juan, Lore, Vane y Marina.
+- **Club de Lectura**: Ana, Anna, Cris, Elena, Irene, Juan, Lore, Vane y Marina.
 - **Moderador/a**: Irene (encargada de la infraestructura y mantenimiento).
 
 ## 3. Requisitos Funcionales

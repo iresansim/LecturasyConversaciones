@@ -6,6 +6,19 @@ window.ClubLibroData = {
 
   sessions: [
     {
+      id: 11,
+      date: "2026-03-17",
+      book: {
+        title: "Ana no",
+        author: "Agustín Gómez Arcos",
+        cover: "Imagenes/Ana no.jpg",
+        description: ""
+      },
+      proposer: "Anna",
+      summary: "Conversación sobre la obra 'Ana no' de Agustín Gómez Arcos. Una historia impactante sobre el exilio y la memoria.",
+      comments: 0
+    },
+    {
       id: 10,
       date: "2026-02-17",
       book: {
@@ -138,18 +151,26 @@ window.ClubLibroData = {
   ],
 
   nextSession: {
-    date: "2026-03-17T20:15:00",
+    date: "2026-04-14T20:15:00",
     link: "https://meet.google.com/cxy-jbeu-jee",
-    proposer: "Anna",
+    proposer: "Cris",
     book: {
-      title: "Ana no",
-      author: "Agustín Gómez Arcos",
-      cover: "Imagenes/Ana no.jpg",
-      description: "Una historia conmovedora sobre la guerra y el recuerdo."
-    }
+      title: "Majareta",
+      author: "Juan Manuel Gil",
+      cover: "Imagenes/Majareta.jpg",
+      description: "Una inmersión fascinante en la locura y los límites de la realidad."
+    },
+    comic: {
+      title: "Fun Home",
+      author: "Alison Bechdel",
+      cover: "Imagenes/FunHome.jpg",
+      description: "Una novela gráfica esencial sobre la familia y la identidad."
+    },
+    note: "📢 Dado que el 17 de Marzo fue el día del comic, escogido en honor al inicio de publicación de la mítica revista de historietas TBO, que dio nombre al propio fenómeno de la lectura en viñetas en España, este mes leeremos también un cómic"
   },
 
   proposals: [],
+
 
   externalReads: [
     {

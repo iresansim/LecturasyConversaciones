@@ -9,6 +9,8 @@
 - [x] Corrección de errores de carga local (CORS).
 - [x] Personalización del pie de página.
 - [x] Primer despliegue en GitHub Pages.
+- [x] Sesión 12: Configuración de "Majareta" y el cómic "Fun Home".
+- [x] Reestructuración: Unión de propuestas a próxima sesión y renumeración.
 
 ## Próximas Tareas 🚀
 - [x] Revisión de diseño responsive para móviles.

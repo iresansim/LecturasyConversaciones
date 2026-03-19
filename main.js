@@ -16,11 +16,14 @@ document.addEventListener('DOMContentLoaded', () => {
 function renderNextSession(data) {
     const { nextSession } = data;
     
-    // 1. Update the Cover Image
+    // 1. Update the Cover Image(s)
     const coverContainer = document.getElementById('current-cover');
     if (coverContainer) {
-        // Usamos encodeURI para manejar espacios en el nombre del archivo si es necesario
-        coverContainer.innerHTML = `<img src="${encodeURI(nextSession.book.cover)}" alt="Lectura Actual">`;
+        let coversHtml = `<img src="${encodeURI(nextSession.book.cover)}" alt="Lectura Actual">`;
+        if (nextSession.comic) {
+            coversHtml += `<img src="${encodeURI(nextSession.comic.cover)}" alt="Cómic Especial" class="img-comic">`;
+        }
+        coverContainer.innerHTML = coversHtml;
     }
 
     // 2. Update Details Text
@@ -35,11 +38,34 @@ function renderNextSession(data) {
 
         const timeString = date.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
 
-        contentContainer.innerHTML = `
+        let titlesHtml = `
             <div style="margin-bottom: 2rem;">
                 <h2 class="book-title">${nextSession.book.title}</h2>
                 <div class="book-author">${nextSession.book.author}</div>
             </div>
+        `;
+
+        if (nextSession.comic) {
+            titlesHtml += `
+                <div style="margin-bottom: 2rem; padding-left: 1rem; border-left: 2px solid var(--accent);">
+                    <div style="font-size: 0.7rem; color: var(--accent); font-weight: 600; text-transform: uppercase; margin-bottom: 0.2rem;">Cómic del Mes:</div>
+                    <h3 style="font-family: var(--font-serif); font-size: 1.5rem; margin: 0;">${nextSession.comic.title}</h3>
+                    <div style="font-family: var(--font-sans); font-size: 0.9rem; color: var(--text-muted);">${nextSession.comic.author}</div>
+                </div>
+            `;
+        }
+
+        let noteHtml = '';
+        if (nextSession.note) {
+            noteHtml = `
+                <div class="session-note" style="margin-top: 1.5rem; font-size: 0.9rem; font-style: italic; color: var(--text-muted); border-top: 1px solid var(--border-light); padding-top: 1rem;">
+                    ${nextSession.note}
+                </div>
+            `;
+        }
+
+        contentContainer.innerHTML = `
+            ${titlesHtml}
             <div class="data-grid">
                 <div class="data-row">
                     <span class="key">Fecha Sesión</span>
@@ -58,6 +84,7 @@ function renderNextSession(data) {
                     <span class="val">${nextSession.proposer}</span>
                 </div>
             </div>
+            ${noteHtml}
             <a href="${nextSession.link}" target="_blank" class="btn-primary" style="align-self: flex-start; margin-top: 2.5rem;">Unirse a la Sesión</a>
         `;
     }
@@ -65,21 +92,21 @@ function renderNextSession(data) {
 
 function renderProposals(data) {
     const { proposals } = data;
-    const container = document.getElementById('proposals-list');
+    const container = document.getElementById('proposals-next-session');
     if (!container) return;
     
     if (proposals.length === 0) {
         container.innerHTML = `
-            <div style="font-family: var(--font-sans); font-size: 1.1rem; line-height: 1.6; padding: 2rem; border-left: 2px solid var(--accent); background: rgba(196, 117, 45, 0.05); margin-top: 2rem;">
-                🗣️ <strong>@Cris</strong> trae tres propuestas como máximo para la votación de la próxima sesión.
+            <div style="font-family: var(--font-sans); font-size: 1rem; line-height: 1.4; padding: 1.5rem; border-left: 2px solid var(--accent); background: rgba(196, 117, 45, 0.05); margin-top: 2.5rem;">
+                🗣️ <strong>@Elena</strong> trae tres propuestas como máximo para la votación de la próxima sesión.
             </div>
         `;
         return;
     }
 
-    container.innerHTML = `<div class="meta-label" style="margin-bottom: 2rem;">PROPUESTAS ACTUALES</div>` + proposals.map(p => `
-        <div class="data-row" style="margin-bottom: 1rem;">
-            <span class="val" style="text-align: left;"><strong>${p.title}</strong><br><span style="font-style: italic; opacity: 0.7;">${p.author}</span></span>
+    container.innerHTML = `<div class="meta-label" style="margin-top: 2.5rem; margin-bottom: 1.5rem;">PROPUESTAS ACTUALES</div>` + proposals.map(p => `
+        <div class="data-row" style="margin-bottom: 0.8rem;">
+            <span class="val" style="text-align: left;"><strong>${p.title}</strong><br><span style="font-style: italic; opacity: 0.7; font-size: 0.8em;">${p.author}</span></span>
             <span class="key" style="color: var(--accent); font-weight: bold;">${p.votes} votos</span>
         </div>
     `).join('');
