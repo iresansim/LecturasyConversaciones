@@ -1,9 +1,14 @@
+// Configuración de Supabase
+const SUPABASE_URL = 'https://hezgfdairgtrqxznszos.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhlemdmZGFpcmd0cnF4em5zem9zIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM5MDY1NTYsImV4cCI6MjA4OTQ4MjU1Nn0.KZN36UqLYCUmAyVEjk_JIhYlcotEjfY9TRISBzT_K6Q';
+
+let supabase;
+
 document.addEventListener('DOMContentLoaded', () => {
-    // Accedemos a los datos globales (cargados desde data.js)
+    // 1. Cargar datos estáticos (data.js) inmediatamente
     const data = window.ClubLibroData;
-    
     if (!data) {
-        console.error("No se encontraron los datos del club. Asegúrate de que data.js se carga antes que main.js");
+        console.error("No se encontraron los datos del club.");
         return;
     }
 
@@ -11,12 +16,45 @@ document.addEventListener('DOMContentLoaded', () => {
     renderProposals(data);
     renderExternalReads(data);
     renderTimeline(data);
+
+    // 2. Intentar actualizar SOLO el proponente desde Supabase (Mejora progresiva)
+    if (window.supabase) {
+        supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        updateProposerFromSupabase();
+    }
 });
+
+async function updateProposerFromSupabase() {
+    try {
+        const { data: sessions, error } = await supabase
+            .from('sesiones')
+            .select('proponente')
+            .order('numero_sesion', { ascending: false })
+            .limit(1);
+
+        if (error) throw error;
+        if (sessions && sessions.length > 0 && sessions[0].proponente) {
+            // Buscamos el elemento de "Propuesto Por" en la tabla de datos
+            const dataRows = document.querySelectorAll('.data-row');
+            dataRows.forEach(row => {
+                const key = row.querySelector('.key');
+                const val = row.querySelector('.val');
+                if (key && key.textContent.includes('Propuesto Por')) {
+                    val.textContent = sessions[0].proponente;
+                    val.style.color = 'var(--accent)'; // Un pequeño toque visual para indicar que es dinámico
+                    val.style.fontWeight = 'bold';
+                }
+            });
+        }
+    } catch (err) {
+        console.warn("No se pudo actualizar el proponente desde la DB, se mantiene el valor estático.");
+    }
+}
 
 function renderNextSession(data) {
     const { nextSession } = data;
     
-    // 1. Portada
+    // Portada
     const coverContainer = document.getElementById('current-cover');
     if (coverContainer) {
         let coversHtml = `<img src="${encodeURI(nextSession.book.cover)}" alt="Lectura Actual">`;
@@ -26,7 +64,7 @@ function renderNextSession(data) {
         coverContainer.innerHTML = coversHtml;
     }
 
-    // 2. Contenido de Texto
+    // Texto
     const contentContainer = document.getElementById('next-session-content');
     if (contentContainer) {
         const date = new Date(nextSession.date);
@@ -69,7 +107,7 @@ function renderNextSession(data) {
                     <span class="key">Plataforma</span>
                     <span class="val">Google Meet</span>
                 </div>
-                <div class="data-row">
+                <div class="data-row" id="proposer-row">
                     <span class="key">Propuesto Por</span>
                     <span class="val">${nextSession.proposer}</span>
                 </div>
