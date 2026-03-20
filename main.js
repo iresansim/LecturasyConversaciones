@@ -158,7 +158,12 @@ async function updateTinteroDynamic(client) {
 
         if (error) throw error;
         if (proposals && proposals.length > 0) {
-            let html = `
+            // Dividir las propuestas en dos grupos para dos columnas
+            const midpoint = Math.ceil(proposals.length / 2);
+            const leftCol = proposals.slice(0, midpoint);
+            const rightCol = proposals.slice(midpoint);
+
+            const renderTable = (items) => `
                 <table class="tintero-table">
                     <thead>
                         <tr>
@@ -168,22 +173,24 @@ async function updateTinteroDynamic(client) {
                         </tr>
                     </thead>
                     <tbody>
-            `;
-            
-            html += proposals.map(p => `
-                <tr>
-                    <td><strong>${p.titulo}</strong></td>
-                    <td>${p.autor || '-'}</td>
-                    <td>${p.proponente || '-'}</td>
-                </tr>
-            `).join('');
-            
-            html += `
+                        ${items.map(p => `
+                            <tr>
+                                <td><strong>${p.titulo}</strong></td>
+                                <td>${p.autor || '-'}</td>
+                                <td>${p.proponente || '-'}</td>
+                            </tr>
+                        `).join('')}
                     </tbody>
                 </table>
             `;
-            container.innerHTML = html;
-            console.log("Propuestas del tintero cargadas desde DB");
+
+            container.innerHTML = `
+                <div class="tintero-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 4rem;">
+                    <div class="tintero-col">${renderTable(leftCol)}</div>
+                    <div class="tintero-col">${renderTable(rightCol)}</div>
+                </div>
+            `;
+            console.log("Propuestas del tintero cargadas en 2 columnas");
         }
     } catch (err) {
         console.warn("Fallo al cargar propuestas del tintero:", err.message);
