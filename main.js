@@ -196,7 +196,7 @@ async function updateTinteroDynamic(client) {
             `;
 
             container.innerHTML = `
-                <div class="tintero-grid">
+                <div class="tintero-flex-container">
                     <div class="tintero-col">${renderTable(leftCol)}</div>
                     <div class="tintero-col">${renderTable(rightCol)}</div>
                 </div>

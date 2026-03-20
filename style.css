@@ -212,11 +212,17 @@ nav a:hover {
 }
 
 /* Estilos para la tabla del Tintero */
-.tintero-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 4rem;
+.tintero-flex-container {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: var(--space-lg);
     width: 100%;
+}
+
+.tintero-col {
+    flex: 1 1 45%; /* Dos columnas en desktop */
+    min-width: 300px;
 }
 
 .tintero-table {
@@ -327,9 +333,15 @@ nav a:hover {
         padding-bottom: var(--space-xl);
     }
 
-    .tintero-grid {
-        grid-template-columns: 1fr;
+    .tintero-flex-container {
+        flex-direction: column;
         gap: 0;
+    }
+
+    .tintero-col {
+        flex: 1 1 100%;
+        width: 100%;
+        min-width: 0;
     }
 
     /* Mejora de tablas en móvil (Stacking) */
