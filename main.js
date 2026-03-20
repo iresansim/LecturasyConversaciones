@@ -186,9 +186,9 @@ async function updateTinteroDynamic(client) {
                     <tbody>
                         ${items.map(p => `
                             <tr>
-                                <td><strong>${p.titulo}</strong></td>
-                                <td>${p.autor || '-'}</td>
-                                <td>${p.proponente || '-'}</td>
+                                <td data-label="Título"><strong>${p.titulo}</strong></td>
+                                <td data-label="Autor">${p.autor || '-'}</td>
+                                <td data-label="Propuesto por">${p.proponente || '-'}</td>
                             </tr>
                         `).join('')}
                     </tbody>
