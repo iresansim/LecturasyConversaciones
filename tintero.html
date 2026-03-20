@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>En el Tintero - Lecturas y Conversaciones</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <main class="canvas">
+        <header>
+            <div class="logo">Lecturas y Conversaciones</div>
+            <nav>
+                <a href="index.html">Inicio</a>
+                <a href="index.html#history-section">Historial</a>
+                <a href="tintero.html" class="active">En el Tintero</a>
+            </nav>
+        </header>
+
+        <!-- Apartado 03: En el Tintero -->
+        <div id="tintero-section" class="section-tintero" style="margin-top: 4rem;">
+            <div class="meta-label">
+                <span class="num">03</span> EN EL TINTERO
+            </div>
+            <div id="external-list"></div>
+
+            <!-- Pie de página personalizado -->
+            <footer class="main-footer">
+                <p>Lecturas y Conversaciones hecho con ❤️ para Ana, Anna, Cris, Elena, Juan, Lore, Vane y Marina</p>
+            </footer>
+        </div>
+
+    </main>
+    <!-- Cargamos los datos primero y luego la lógica -->
+    <script src="data.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="main.js"></script>
+</body>
+</html>
