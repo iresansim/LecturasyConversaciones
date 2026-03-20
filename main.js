@@ -20,11 +20,11 @@ document.addEventListener('DOMContentLoaded', () => {
     try { safeRender('Recomendaciones', () => renderExternalReads(data)); } catch(e) { console.error(e); }
     try { safeRender('Historial', () => renderTimeline(data)); } catch(e) { console.error(e); }
 
-    // 3. Intento de actualización dinámica del proponente
+    // 3. Intento de actualización dinámica de campos desde Supabase
     if (window.supabase) {
         try {
             const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-            updateProposer(supabase);
+            updateDynamicFields(supabase);
         } catch (e) {
             console.warn("Error al inicializar Supabase:", e.message);
         }
@@ -43,29 +43,64 @@ function showOnScreenError(msg) {
     document.body.prepend(div);
 }
 
-async function updateProposer(client) {
+async function updateDynamicFields(client) {
     try {
         const { data: sessions, error } = await client
             .from('sesiones')
-            .select('proponente')
+            .select('proponente, plataforma, link_reunion, notas')
             .order('numero_sesion', { ascending: false })
             .limit(1);
 
         if (error) throw error;
-        if (sessions && sessions.length > 0 && sessions[0].proponente) {
-            const row = document.getElementById('proposer-row');
-            if (row) {
-                const val = row.querySelector('.val');
-                if (val) {
-                    val.textContent = sessions[0].proponente;
-                    val.style.color = 'var(--accent)';
-                    val.style.fontWeight = 'bold';
-                    console.log("Proponente actualizado desde DB:", sessions[0].proponente);
+        if (sessions && sessions.length > 0) {
+            const session = sessions[0];
+            
+            // 1. Proponente
+            const proposerVal = document.querySelector('#proposer-row .val');
+            if (proposerVal && session.proponente) {
+                proposerVal.textContent = session.proponente;
+                proposerVal.style.color = 'var(--accent)';
+                proposerVal.style.fontWeight = 'bold';
+            }
+
+            // 2. Plataforma
+            const platformVal = document.querySelector('#platform-row .val');
+            if (platformVal) {
+                if (session.plataforma && session.plataforma.toLowerCase().includes('online')) {
+                    platformVal.textContent = "Google Meet";
+                } else if (session.plataforma) {
+                    platformVal.textContent = session.plataforma;
+                }
+                platformVal.style.color = 'var(--accent)';
+                platformVal.style.fontWeight = 'bold';
+            }
+
+            // 3. Link de reunión
+            const meetingBtn = document.getElementById('meeting-btn');
+            if (meetingBtn) {
+                if (session.link_reunion) {
+                    meetingBtn.href = session.link_reunion;
+                    meetingBtn.style.display = 'inline-block';
+                } else {
+                    meetingBtn.style.display = 'none';
                 }
             }
+
+            // 4. Notas (Anuncio 📢)
+            const noteDiv = document.getElementById('session-note');
+            if (noteDiv) {
+                if (session.notas) {
+                    noteDiv.textContent = session.notas;
+                    noteDiv.style.display = 'block';
+                } else {
+                    noteDiv.style.display = 'none';
+                }
+            }
+            
+            console.log("Campos actualizados desde DB correctamente");
         }
     } catch (err) {
-        console.warn("Fallo al cargar el proponente dinámico:", err.message);
+        console.warn("Fallo al cargar campos dinámicos:", err.message);
     }
 }
 
@@ -120,7 +155,7 @@ function renderNextSession(data) {
                     <span class="key">Hora</span>
                     <span class="val">${timeString}</span>
                 </div>
-                <div class="data-row">
+                <div class="data-row" id="platform-row">
                     <span class="key">Plataforma</span>
                     <span class="val">Google Meet</span>
                 </div>
@@ -129,8 +164,8 @@ function renderNextSession(data) {
                     <span class="val">${nextSession.proposer}</span>
                 </div>
             </div>
-            ${nextSession.note ? `<div class="session-note" style="margin-top: 1.5rem; font-size: 0.9rem; font-style: italic; color: var(--text-muted); border-top: 1px solid var(--border-light); padding-top: 1rem;">${nextSession.note}</div>` : ''}
-            <a href="${nextSession.link}" target="_blank" class="btn-primary" style="align-self: flex-start; margin-top: 2.5rem;">Unirse a la Sesión</a>
+            ${nextSession.note ? `<div class="session-note" id="session-note" style="margin-top: 1.5rem; font-size: 0.9rem; font-style: italic; color: var(--text-muted); border-top: 1px solid var(--border-light); padding-top: 1rem;">${nextSession.note}</div>` : `<div class="session-note" id="session-note" style="display:none; margin-top: 1.5rem; font-size: 0.9rem; font-style: italic; color: var(--text-muted); border-top: 1px solid var(--border-light); padding-top: 1rem;"></div>`}
+            <a href="${nextSession.link}" target="_blank" class="btn-primary" id="meeting-btn" style="align-self: flex-start; margin-top: 2.5rem;">Unirse a la Sesión</a>
         `;
     }
 }
