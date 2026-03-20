@@ -22,13 +22,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 3. Intento de actualización dinámica de campos desde Supabase (Mejora Progresiva)
     if (window.supabase) {
-        try {
-            const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-            updateDynamicFields(supabase);
-            updateTinteroDynamic(supabase);
-        } catch (e) {
-            console.warn("Error al inicializar Supabase:", e.message);
-        }
+        setTimeout(async () => {
+            try {
+                const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+                await updateDynamicFields(supabase);
+                await updateTinteroDynamic(supabase);
+            } catch (e) {
+                console.warn("Error al inicializar Supabase:", e.message);
+            }
+        }, 100);
     } else {
         console.warn("Supabase SDK no detectado globalmente.");
     }

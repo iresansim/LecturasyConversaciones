@@ -216,13 +216,13 @@ nav a:hover {
     display: flex;
     flex-direction: row;
     flex-wrap: wrap;
-    gap: var(--space-lg);
+    gap: 1.5rem; /* Menor gap para dar más espacio */
     width: 100%;
 }
 
 .tintero-col {
-    flex: 1 1 45%; /* Dos columnas en desktop */
-    min-width: 300px;
+    flex: 1 1 48%; /* Más ancho en desktop */
+    min-width: 350px;
 }
 
 .tintero-table {
