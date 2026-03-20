@@ -2,7 +2,7 @@
 const SUPABASE_URL = 'https://hezgfdairgtrqxznszos.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhlemdmZGFpcmd0cnF4em5zem9zIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM5MDY1NTYsImV4cCI6MjA4OTQ4MjU1Nn0.KZN36UqLYCUmAyVEjk_JIhYlcotEjfY9TRISBzT_K6Q';
 
-console.log("main.js detectado");
+console.log("main.js detectado v.debug");
 
 document.addEventListener('DOMContentLoaded', () => {
     console.log("DOM Cargado");
@@ -29,6 +29,8 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (e) {
             console.warn("Error al inicializar Supabase:", e.message);
         }
+    } else {
+        console.warn("Supabase SDK no detectado globalmente.");
     }
 });
 
@@ -74,8 +76,7 @@ async function updateDynamicFields(client) {
             const dateVal = document.querySelector('#date-row .val');
             const timeVal = document.querySelector('#time-row .val');
             if (dateVal && session.fecha) {
-                // Formatear fecha: Martes, 14 de Abril
-                const date = new Date(session.fecha + 'T12:00:00'); // Forzamos mediodía para evitar problemas de zona horaria
+                const date = new Date(session.fecha + 'T12:00:00'); 
                 let dateString = date.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' });
                 dateString = dateString.split(' ').map(word => 
                     word.length > 2 ? word.charAt(0).toUpperCase() + word.slice(1) : word
@@ -83,7 +84,6 @@ async function updateDynamicFields(client) {
                 dateVal.textContent = dateString;
             }
             if (timeVal && session.hora) {
-                // Formatear hora: HH:mm (quitamos los segundos de la DB si los hay)
                 timeVal.textContent = session.hora.substring(0, 5);
             }
 
@@ -129,7 +129,7 @@ async function updateDynamicFields(client) {
                 }
             }
 
-            // 7. Portada (Opcional pero recomendado si ya tenemos la imagen)
+            // 7. Portada
             const coverContainer = document.getElementById('current-cover');
             if (coverContainer && session.libro && session.libro.imagen) {
                 let coversHtml = `<img src="${encodeURI(session.libro.imagen)}" alt="Lectura Actual">`;
@@ -139,7 +139,7 @@ async function updateDynamicFields(client) {
                 coverContainer.innerHTML = coversHtml;
             }
             
-            console.log("Sección 01 actualizada íntegramente desde DB");
+            console.log("Sección 01 actualizada desde DB");
         }
     } catch (err) {
         console.warn("Fallo al cargar campos dinámicos:", err.message);
@@ -151,14 +151,20 @@ async function updateTinteroDynamic(client) {
     if (!container) return;
 
     try {
+        console.log("Iniciando fetch de propuestas pendientes...");
         const { data: proposals, error } = await client
             .from('propuestas_pendientes')
-            .select('titulo, autor, proponente')
-            .order('titulo', { ascending: true });
+            .select('titulo, autor, proponente');
 
-        if (error) throw error;
+        if (error) {
+            console.error("Error en select de propuestas_pendientes:", error);
+            throw error;
+        }
+        
+        console.log(`Propuestas obtenidas: ${proposals ? proposals.length : 0}`);
+
         if (proposals && proposals.length > 0) {
-            // Orden personalizado solicitado por el usuario
+            // Orden personalizado
             const customOrder = ['Ana', 'Anna', 'Cris', 'Elena', 'Irene', 'Juan', 'Lorena', 'Vane', 'Marina'];
             
             proposals.sort((a, b) => {
@@ -169,7 +175,7 @@ async function updateTinteroDynamic(client) {
                 return indexA - indexB;
             });
 
-            // Dividir las propuestas en dos grupos para dos columnas
+            // Dividir las propuestas en dos grupos
             const midpoint = Math.ceil(proposals.length / 2);
             const leftCol = proposals.slice(0, midpoint);
             const rightCol = proposals.slice(midpoint);
@@ -186,7 +192,7 @@ async function updateTinteroDynamic(client) {
                     <tbody>
                         ${items.map(p => `
                             <tr>
-                                <td data-label="Título"><strong>${p.titulo}</strong></td>
+                                <td data-label="Título"><strong>${p.titulo || 'Sin título'}</strong></td>
                                 <td data-label="Autor">${p.autor || '-'}</td>
                                 <td data-label="Propuesto por">${p.proponente || '-'}</td>
                             </tr>
@@ -201,10 +207,12 @@ async function updateTinteroDynamic(client) {
                     <div class="tintero-col">${renderTable(rightCol)}</div>
                 </div>
             `;
-            console.log("Propuestas del tintero cargadas en 2 columnas");
+            console.log("Sección Tintero renderizada correctamente.");
+        } else {
+            console.log("No se encontraron propuestas en la tabla de la DB.");
         }
     } catch (err) {
-        console.warn("Fallo al cargar propuestas del tintero:", err.message);
+        console.warn("Fallo crítico en updateTinteroDynamic:", err.message);
     }
 }
 
@@ -238,7 +246,6 @@ function renderNextSession(data) {
             </div>
         `;
 
-        // El cómic lo mantenemos estático o dinámico según disponibilidad en data.js inicialmente
         if (nextSession.comic) {
             titlesHtml += `
                 <div style="margin-bottom: 2rem; padding-left: 1rem; border-left: 2px solid var(--accent);">
