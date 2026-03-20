@@ -158,6 +158,17 @@ async function updateTinteroDynamic(client) {
 
         if (error) throw error;
         if (proposals && proposals.length > 0) {
+            // Orden personalizado solicitado por el usuario
+            const customOrder = ['Ana', 'Anna', 'Cris', 'Elena', 'Irene', 'Juan', 'Lorena', 'Vane', 'Marina'];
+            
+            proposals.sort((a, b) => {
+                let indexA = customOrder.indexOf(a.proponente);
+                let indexB = customOrder.indexOf(b.proponente);
+                if (indexA === -1) indexA = 99;
+                if (indexB === -1) indexB = 99;
+                return indexA - indexB;
+            });
+
             // Dividir las propuestas en dos grupos para dos columnas
             const midpoint = Math.ceil(proposals.length / 2);
             const leftCol = proposals.slice(0, midpoint);
