@@ -20,7 +20,7 @@ document.addEventListener('DOMContentLoaded', () => {
     try { safeRender('Recomendaciones', () => renderExternalReads(data)); } catch(e) { console.error(e); }
     try { safeRender('Historial', () => renderTimeline(data)); } catch(e) { console.error(e); }
 
-    // 3. Intento de actualización dinámica de campos desde Supabase
+    // 3. Intento de actualización dinámica de campos desde Supabase (Mejora Progresiva)
     if (window.supabase) {
         try {
             const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -47,7 +47,11 @@ async function updateDynamicFields(client) {
     try {
         const { data: sessions, error } = await client
             .from('sesiones')
-            .select('proponente, plataforma, link_reunion, notas')
+            .select(`
+                proponente, plataforma, link_reunion, notas, fecha, hora,
+                libro:libro_id(titulo, imagen, autor:autor_id(nombre)),
+                comic:comic_id(titulo, imagen, autor:autor_id(nombre))
+            `)
             .order('numero_sesion', { ascending: false })
             .limit(1);
 
@@ -55,15 +59,34 @@ async function updateDynamicFields(client) {
         if (sessions && sessions.length > 0) {
             const session = sessions[0];
             
-            // 1. Proponente
-            const proposerVal = document.querySelector('#proposer-row .val');
-            if (proposerVal && session.proponente) {
-                proposerVal.textContent = session.proponente;
-                proposerVal.style.color = 'var(--accent)';
-                proposerVal.style.fontWeight = 'bold';
+            // 1. Título y Autor
+            const titleEl = document.getElementById('dynamic-title');
+            const authorEl = document.getElementById('dynamic-author');
+            if (titleEl && session.libro && session.libro.titulo) {
+                titleEl.textContent = session.libro.titulo;
+            }
+            if (authorEl && session.libro && session.libro.autor && session.libro.autor.nombre) {
+                authorEl.textContent = session.libro.autor.nombre;
             }
 
-            // 2. Plataforma
+            // 2. Fecha y Hora
+            const dateVal = document.querySelector('#date-row .val');
+            const timeVal = document.querySelector('#time-row .val');
+            if (dateVal && session.fecha) {
+                // Formatear fecha: Martes, 14 de Abril
+                const date = new Date(session.fecha + 'T12:00:00'); // Forzamos mediodía para evitar problemas de zona horaria
+                let dateString = date.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' });
+                dateString = dateString.split(' ').map(word => 
+                    word.length > 2 ? word.charAt(0).toUpperCase() + word.slice(1) : word
+                ).join(' ');
+                dateVal.textContent = dateString;
+            }
+            if (timeVal && session.hora) {
+                // Formatear hora: HH:mm (quitamos los segundos de la DB si los hay)
+                timeVal.textContent = session.hora.substring(0, 5);
+            }
+
+            // 3. Plataforma
             const platformVal = document.querySelector('#platform-row .val');
             if (platformVal) {
                 if (session.plataforma && session.plataforma.toLowerCase().includes('online')) {
@@ -75,7 +98,15 @@ async function updateDynamicFields(client) {
                 platformVal.style.fontWeight = 'bold';
             }
 
-            // 3. Link de reunión
+            // 4. Proponente
+            const proposerVal = document.querySelector('#proposer-row .val');
+            if (proposerVal && session.proponente) {
+                proposerVal.textContent = session.proponente;
+                proposerVal.style.color = 'var(--accent)';
+                proposerVal.style.fontWeight = 'bold';
+            }
+
+            // 5. Link de reunión
             const meetingBtn = document.getElementById('meeting-btn');
             if (meetingBtn) {
                 if (session.link_reunion) {
@@ -86,7 +117,7 @@ async function updateDynamicFields(client) {
                 }
             }
 
-            // 4. Notas (Anuncio 📢)
+            // 6. Notas (Anuncio 📢)
             const noteDiv = document.getElementById('session-note');
             if (noteDiv) {
                 if (session.notas) {
@@ -96,8 +127,18 @@ async function updateDynamicFields(client) {
                     noteDiv.style.display = 'none';
                 }
             }
+
+            // 7. Portada (Opcional pero recomendado si ya tenemos la imagen)
+            const coverContainer = document.getElementById('current-cover');
+            if (coverContainer && session.libro && session.libro.imagen) {
+                let coversHtml = `<img src="${encodeURI(session.libro.imagen)}" alt="Lectura Actual">`;
+                if (session.comic && session.comic.imagen) {
+                    coversHtml += `<img src="${encodeURI(session.comic.imagen)}" alt="Cómic Especial" class="img-comic">`;
+                }
+                coverContainer.innerHTML = coversHtml;
+            }
             
-            console.log("Campos actualizados desde DB correctamente");
+            console.log("Sección 01 actualizada íntegramente desde DB");
         }
     } catch (err) {
         console.warn("Fallo al cargar campos dinámicos:", err.message);
@@ -129,11 +170,12 @@ function renderNextSession(data) {
 
         let titlesHtml = `
             <div style="margin-bottom: 2rem;">
-                <h2 class="book-title">${nextSession.book.title}</h2>
-                <div class="book-author">${nextSession.book.author}</div>
+                <h2 class="book-title" id="dynamic-title">${nextSession.book.title}</h2>
+                <div class="book-author" id="dynamic-author">${nextSession.book.author}</div>
             </div>
         `;
 
+        // El cómic lo mantenemos estático o dinámico según disponibilidad en data.js inicialmente
         if (nextSession.comic) {
             titlesHtml += `
                 <div style="margin-bottom: 2rem; padding-left: 1rem; border-left: 2px solid var(--accent);">
@@ -147,11 +189,11 @@ function renderNextSession(data) {
         contentContainer.innerHTML = `
             ${titlesHtml}
             <div class="data-grid">
-                <div class="data-row">
+                <div class="data-row" id="date-row">
                     <span class="key">Fecha Sesión</span>
                     <span class="val">${dateString}</span>
                 </div>
-                <div class="data-row">
+                <div class="data-row" id="time-row">
                     <span class="key">Hora</span>
                     <span class="val">${timeString}</span>
                 </div>
