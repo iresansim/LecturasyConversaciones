@@ -25,6 +25,7 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
             updateDynamicFields(supabase);
+            updateTinteroDynamic(supabase);
         } catch (e) {
             console.warn("Error al inicializar Supabase:", e.message);
         }

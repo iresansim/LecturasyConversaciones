@@ -206,6 +206,37 @@ nav a:hover {
     text-align: center;
 }
 
+/* Estilos para la tabla del Tintero */
+.tintero-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: var(--font-sans);
+    font-size: 0.85rem;
+    margin-top: 1rem;
+    animation: fadeIn 0.8s ease;
+}
+
+.tintero-table th {
+    text-align: left;
+    padding: 1rem;
+    border-bottom: 2px solid var(--accent);
+    color: var(--accent);
+    text-transform: uppercase;
+    font-size: 0.7rem;
+    letter-spacing: 0.1em;
+}
+
+.tintero-table td {
+    padding: 1rem;
+    border-bottom: 1px solid var(--border-light);
+    color: var(--text-main);
+    line-height: 1.4;
+}
+
+.tintero-table tr:hover {
+    background: rgba(196, 117, 45, 0.03);
+}
+
 /* Rest of the styles... */
 .img-block img {
     width: 100%;
