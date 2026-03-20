@@ -146,6 +146,50 @@ async function updateDynamicFields(client) {
     }
 }
 
+async function updateTinteroDynamic(client) {
+    const container = document.getElementById('external-list');
+    if (!container) return;
+
+    try {
+        const { data: proposals, error } = await client
+            .from('propuestas_pendientes')
+            .select('titulo, autor, proponente')
+            .order('titulo', { ascending: true });
+
+        if (error) throw error;
+        if (proposals && proposals.length > 0) {
+            let html = `
+                <table class="tintero-table">
+                    <thead>
+                        <tr>
+                            <th>Título</th>
+                            <th>Autor</th>
+                            <th>Propuesto por</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+            
+            html += proposals.map(p => `
+                <tr>
+                    <td><strong>${p.titulo}</strong></td>
+                    <td>${p.autor || '-'}</td>
+                    <td>${p.proponente || '-'}</td>
+                </tr>
+            `).join('');
+            
+            html += `
+                    </tbody>
+                </table>
+            `;
+            container.innerHTML = html;
+            console.log("Propuestas del tintero cargadas desde DB");
+        }
+    } catch (err) {
+        console.warn("Fallo al cargar propuestas del tintero:", err.message);
+    }
+}
+
 function renderNextSession(data) {
     const { nextSession } = data;
     if (!nextSession) return;
