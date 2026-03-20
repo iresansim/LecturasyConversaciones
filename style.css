@@ -149,6 +149,11 @@ nav a:hover {
     grid-row: 6;
 }
 
+/* Clase para secciones que ocupan casi todo el ancho en escritorio */
+.section-wide {
+    grid-column: 2 / 12;
+}
+
 /* Sections Base (Common) */
 .section-next, .section-timeline, .section-tintero {
     display: flex;
@@ -207,6 +212,13 @@ nav a:hover {
 }
 
 /* Estilos para la tabla del Tintero */
+.tintero-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4rem;
+    width: 100%;
+}
+
 .tintero-table {
     width: 100%;
     border-collapse: collapse;
@@ -313,6 +325,15 @@ nav a:hover {
         flex-direction: column;
         gap: 0;
         padding-bottom: var(--space-xl);
+    }
+
+    .tintero-grid {
+        grid-template-columns: 1fr;
+        gap: 2rem;
+    }
+
+    .section-wide {
+        grid-column: auto;
     }
 
     header {
